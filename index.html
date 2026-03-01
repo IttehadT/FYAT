@@ -88,7 +88,7 @@
 
     <script>
         // Replace this URL with your raw GitHub user content URL for connect.json
-        const JSON_API_URL = 'https://raw.githubusercontent.com/IttehadT/fyat-session-mapper/refs/heads/main/connect.json';
+        const JSON_API_URL = 'https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO/main/connect.json';
 
         let studentNames = {};
 
@@ -122,14 +122,9 @@
             document.getElementById('loader').style.display = 'block';
 
             try {
-                // In a real environment, uncomment the fetch to use the Github raw link
-                // const response = await fetch(JSON_API_URL);
-                // const courseData = await response.json();
-                
-                // For this demo, assuming user uploads connect.json or we mock it. 
-                // Because of CORS or file restrictions, we'll prompt for the JSON file 
-                // if the API URL isn't configured yet. 
-                const courseData = []; // Replace with actual fetch
+                const response = await fetch(JSON_API_URL);
+                if (!response.ok) throw new Error("Could not fetch connect.json");
+                const courseData = await response.json();
 
                 const scheduleMap = {};
                 courseData.forEach(item => {
@@ -152,17 +147,16 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const text = e.target.result;
-                    const lines = text.split('\\n').filter(line => line.trim() !== '');
+                    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
                     const studentData = [];
                     const allStudentIds = new Set();
                     
                     for (let i = 1; i < lines.length; i++) {
                         const row = parseCSVRow(lines[i]);
                         if (row.length >= 5) {
-                            
-                            const name = row[2] ? row[2].trim() : "Unknown";
-                            const studentId = row[3] ? row[3].trim() : "Unknown";
-                            const courseString = row[row.length - 1]; 
+                            const name = row[2].trim();
+                            const studentId = row[3].trim();
+                            const courseString = row[4]; 
                             
                             const regex = /([A-Za-z]{3,4})[^\w]*(\d{3})[^\w]*(\d{1,2})/g;
                             let matches;
@@ -199,7 +193,7 @@
                     });
 
                     const mentorCourses = mentorCoursesInput.split(',').map(c => {
-                        const m = c.match(/([A-Za-z]{3,4})[^\\w]*(\\d{3})[^\\w]*(\\d{1,2})/);
+                        const m = c.match(/([A-Za-z]{3,4})[^\w]*(\d{3})[^\w]*(\d{1,2})/);
                         return m ? `${m[1].toUpperCase()}${m[2]}-${m[3].padStart(2, '0')}` : null;
                     }).filter(Boolean);
 
@@ -244,7 +238,7 @@
                 reader.readAsText(csvInput);
 
             } catch (error) {
-                alert("Error fetching university data. Check the JSON URL.");
+                alert("Error fetching connect.json. Make sure the JSON_API_URL is correct and the repository is public.");
                 console.error(error);
             } finally {
                 document.getElementById('loader').style.display = 'none';
@@ -333,6 +327,4 @@
         }
     </script>
 </body>
-
 </html>
-
